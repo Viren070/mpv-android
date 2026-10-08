@@ -21,25 +21,12 @@ Download the AAR from [Releases](https://github.com/Viren070/mpv-android/release
 
 ### Using BaseMPVView
 
-The simplest way to extend `BaseMPVView`:
+`BaseMPVView` attaches its surface to the `MPV` you give it:
 
 ```kotlin
-class MyPlayerView(context: Context, attrs: AttributeSet?) : BaseMPVView(context, attrs) {
-
-    override fun initOptions() {
-        // Set options before mpv.init() is called
-        mpv.setOptionString("hwdec", "auto")
-    }
-
-    override fun postInitOptions() {
-        // Set options after mpv.init() is called
-        mpv.setOptionString("sub-auto", "fuzzy")
-    }
-}
-
-val playerView = MyPlayerView(context, null)
-playerView.initialize(configDir = filesDir.path, cacheDir = cacheDir.path)
-playerView.playFile("/path/to/video.mp4")
+val playerView = BaseMPVView(context, null)
+playerView.mpv = MPV(context) { it.setOptionString("hwdec", "auto") }
+playerView.mpv?.command("loadfile", "/path/to/video.mp4")
 ```
 
 ### Using MPV() Directly
@@ -47,11 +34,11 @@ playerView.playFile("/path/to/video.mp4")
 You can also use `MPV()` then attach to fully control your mpv instance.
 
 ```kotlin
-val mpv = MPV()
-
-mpv.create(context)
-mpv.setOptionString("config", "yes")
-mpv.init()
+// preInit runs before mpv initializes, which is when it reads options such as its config
+val mpv = MPV(context) {
+    it.setOptionString("config", "yes")
+    it.setOptionString("config-dir", configDir)
+}
 
 // Attach to a view surface
 mpv.attachSurface(surface)
@@ -72,7 +59,7 @@ val pauseState: StateFlow<Boolean?> = mpv.propFlow["pause"]
 
 // cleanup
 mpv.detachSurface()
-mpv.destroy()
+mpv.close()
 ```
 
 ### Multiple Instances
@@ -80,11 +67,8 @@ mpv.destroy()
 Each `MPV()` or `BaseMPVView` instance is independent:
 
 ```kotlin
-val player1 = MPV()
-val player2 = MPV()
-
-player1.create(context)
-player2.create(context)
+val player1 = MPV(context)
+val player2 = MPV(context)
 
 // Each player can play different content simultaneously
 ```
