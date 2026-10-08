@@ -57,7 +57,7 @@ object Utils {
 
     fun copyAssets(context: Context) {
         val assetManager = context.assets
-        val files = arrayOf("subfont.ttf", "cacert.pem")
+        val files = arrayOf("subfont.ttf")
         val configDir = context.filesDir.path
 
         for (name in files) {
