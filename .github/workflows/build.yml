@@ -1,8 +1,8 @@
 name: build
 
 # Builds the AAR for arm64-v8a, armeabi-v7a and x86_64 from the sources
-# buildscripts/include/depinfo.sh pins. A push to library also publishes it as
-# a release, tagged with the date and commit.
+# buildscripts/include/depinfo.sh pins, an ABI per job, then joins them. A push
+# to library also publishes it as a release, tagged with the date and commit.
 on:
   push:
     branches: [library]
@@ -11,17 +11,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  abi:
+    name: build (${{ matrix.arch }})
     runs-on: ubuntu-latest
-    timeout-minutes: 240
-    permissions:
-      contents: write
+    timeout-minutes: 120
+    strategy:
+      matrix:
+        arch: [arm64, armv7l, x86_64]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Install the build tools
         run: |
@@ -37,18 +40,36 @@ jobs:
         run: |
           unset ANDROID_SDK_ROOT
           ./download.sh >/dev/null
-          ./buildall.sh --arch arm64 mpv
-          ./buildall.sh --arch x86_64 mpv
-          # armeabi-v7a, then the AAR with all three
-          ./buildall.sh
+          ./buildall.sh --arch ${{ matrix.arch }}
 
-      - name: Collect the AAR
+      - uses: actions/upload-artifact@v7
+        with:
+          name: aar-${{ matrix.arch }}
+          path: lib/build/outputs/aar/lib-release.aar
+          compression-level: 0
+
+  aar:
+    needs: abi
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: aar-*
+
+      - name: Join the AARs
         run: |
           tag="$(date -u +%Y%m%d)-${GITHUB_SHA::7}"
           echo "TAG=$tag" >>"$GITHUB_ENV"
           name="mpv-android-lib-$tag.aar"
-          mkdir out
-          cp lib/build/outputs/aar/lib-release.aar "out/$name"
+          mkdir joined out
+          # They differ only in their native libraries.
+          unzip -q aar-arm64/lib-release.aar -d joined
+          for arch in armv7l x86_64; do unzip -q -o "aar-$arch/lib-release.aar" 'jni/*' -d joined; done
+          (cd joined && zip -q -r -X "../out/$name" .)
           (cd out && sha256sum "$name" >"$name.sha256")
           cat out/*.sha256
 
