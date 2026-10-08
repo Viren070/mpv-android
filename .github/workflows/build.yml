@@ -1,60 +1,77 @@
 name: build
 
+# Builds the AAR for arm64-v8a, armeabi-v7a and x86_64 from the sources
+# buildscripts/include/depinfo.sh pins. A push to library also publishes it as
+# a release, tagged with the date and commit.
 on:
-  - push
-  - pull_request
+  push:
+    branches: [library]
+    paths-ignore: ['**.md']
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-  linux:
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        architecture: [ armv7l, arm64, x86, x86_64 ]
+    timeout-minutes: 240
     permissions:
       contents: write
-
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
-          java-version: '17'
           distribution: temurin
+          java-version: 21
 
-      - name: Export env vars
-        run: buildscripts/include/ci.sh export >>$GITHUB_ENV
-
-      - uses: actions/cache@v4
-        with:
-          path: gh-cache/
-          key: "prefix-${{ hashFiles('buildscripts/**.sh') }}"
-          restore-keys: "prefix-"
-          enableCrossOsArchive: true
-
-      - name: Install deps
+      - name: Install the build tools
         run: |
           sudo apt-get update
-          sudo apt-get install autoconf pkg-config libtool ninja-build python3-pip
-          sudo pip3 install meson
+          sudo apt-get install -y autoconf automake libtool pkg-config ninja-build nasm
+          pipx install meson==1.12.1
 
-      - name: Download deps
-        run: |
-          mkdir -p "$CACHE_FOLDER"
-          buildscripts/include/ci.sh install
+      - name: Build
+        working-directory: buildscripts
         env:
-          CACHE_MODE: "folder"
-          CACHE_FOLDER: "${{ github.workspace }}/gh-cache"
-
-      - name: Build the release artifacts
+          IN_CI: 1
+          GRADLE_OPTS: -Xmx4G
         run: |
-          set -x
           unset ANDROID_SDK_ROOT
-          cd buildscripts
-          ./download.sh > /dev/null
-          ./buildall.sh --arch ${{ matrix.architecture }} mpv
-          ./buildall.sh -n
+          ./download.sh >/dev/null
+          ./buildall.sh --arch arm64 mpv
+          ./buildall.sh --arch x86_64 mpv
+          # armeabi-v7a, then the AAR with all three
+          ./buildall.sh
 
-      - uses: actions/upload-artifact@v4
+      - name: Collect the AAR
+        run: |
+          tag="$(date -u +%Y%m%d)-${GITHUB_SHA::7}"
+          echo "TAG=$tag" >>"$GITHUB_ENV"
+          name="mpv-android-lib-$tag.aar"
+          mkdir out
+          cp lib/build/outputs/aar/lib-release.aar "out/$name"
+          (cd out && sha256sum "$name" >"$name.sha256")
+          cat out/*.sha256
+
+      - uses: actions/upload-artifact@v7
         with:
-          name: mpv-lib-${{ matrix.architecture }}
-          path: lib/build/outputs/aar/app-release.aar
+          name: mpv-android-lib
+          path: out
+          compression-level: 0
+
+      - name: Publish the release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/library'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo 'Built from these sources:'
+            echo
+            sed -n 's/^v_\([a-z0-9_]*\)=\(.*\)$/- \1: \2/p' buildscripts/include/depinfo.sh
+            echo
+            echo 'SHA-256:'
+            echo
+            echo '```'
+            cat out/*.sha256
+            echo '```'
+          } >notes.md
+          gh release create "$TAG" out/* --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md

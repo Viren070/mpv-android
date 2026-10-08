@@ -1,10 +1,11 @@
 # mpv-android-lib
 
-[![Build Status](https://github.com/abdallahmehiz/mpv-android/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/abdallahmehiz/mpv-android/actions/workflows/build.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.abdallahmehiz/mpv-android-lib.svg)](https://central.sonatype.com/artifact/io.github.abdallahmehiz/mpv-android-lib)
+[![Build Status](https://github.com/Viren070/mpv-android/actions/workflows/build.yml/badge.svg?branch=library)](https://github.com/Viren070/mpv-android/actions/workflows/build.yml)
 
 A library version of [mpv-android](https://github.com/mpv-android/mpv-android), providing [libmpv](https://github.com/mpv-player/mpv) for Android applications.
 Initially made for [mpvKt](https://github.com/abdallahmehiz/mpvKt).
+
+This fork is the build [AIOStreams](https://github.com/Viren070/AIOStreams)' Android app ships. Every source is pinned to a commit in [depinfo.sh](buildscripts/include/depinfo.sh), and each push to `library` publishes the AAR for arm64-v8a, armeabi-v7a and x86_64 as a release, with its SHA-256.
 
 ## "New" Features
 
@@ -14,13 +15,7 @@ Initially made for [mpvKt](https://github.com/abdallahmehiz/mpvKt).
 
 ## Installation
 
-Add the dependency to your `build.gradle`:
-
-```groovy
-dependencies {
-    implementation "io.github.abdallahmehiz:mpv-android-lib:<version>"
-}
-```
+Download the AAR from [Releases](https://github.com/Viren070/mpv-android/releases) and check it against the SHA-256 in the release notes. It needs `androidx.core` and `kotlinx-coroutines-android` beside it.
 
 ## Getting Started
 
