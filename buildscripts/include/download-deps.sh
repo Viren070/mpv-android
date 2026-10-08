@@ -2,10 +2,17 @@
 
 . ./include/depinfo.sh
 
-[ -z "$IN_CI" ] && IN_CI=0
 [ -z "$WGET" ] && WGET=wget
 
 mkdir -p deps && cd deps
+
+# A repository at one commit, with its submodules
+clone_at () {
+	git init -q "$1"
+	git -C "$1" fetch -q --depth 1 "$2" "$3"
+	git -C "$1" checkout -q FETCH_HEAD
+	git -C "$1" submodule -q update --init --recursive
+}
 
 # mbedtls
 if [ ! -d mbedtls ]; then
@@ -22,16 +29,10 @@ if [ ! -d libxml2 ]; then
 fi
 
 # dav1d
-[ ! -d dav1d ] && git clone --depth 1 https://github.com/videolan/dav1d
+[ ! -d dav1d ] && clone_at dav1d https://github.com/videolan/dav1d $v_dav1d
 
 # ffmpeg
-if [ ! -d ffmpeg ]; then
-    if [ $IN_CI -eq 1 ]; then
-        git clone --branch $v_ci_ffmpeg --depth 1 https://github.com/FFmpeg/FFmpeg ffmpeg
-    else
-        git clone --depth 1 https://github.com/FFmpeg/FFmpeg ffmpeg
-    fi
-fi
+[ ! -d ffmpeg ] && clone_at ffmpeg https://github.com/FFmpeg/FFmpeg $v_ffmpeg
 
 # freetype2
 [ ! -d freetype2 ] && git clone --depth 1 --recurse-submodules https://gitlab.freedesktop.org/freetype/freetype.git freetype2 -b VER-${v_freetype//./-}
@@ -58,7 +59,7 @@ if [ ! -d unibreak ]; then
 fi
 
 # libass
-[ ! -d libass ] && git clone --depth 1 https://github.com/libass/libass
+[ ! -d libass ] && clone_at libass https://github.com/libass/libass $v_libass
 
 # lua
 if [ ! -d lua ]; then
@@ -68,9 +69,9 @@ if [ ! -d lua ]; then
 fi
 
 # libplacebo
-[ ! -d libplacebo ] && git clone --depth 1 --recursive https://github.com/haasn/libplacebo
+[ ! -d libplacebo ] && clone_at libplacebo https://github.com/haasn/libplacebo $v_libplacebo
 
 # mpv
-[ ! -d mpv ] && git clone --depth 1 https://github.com/mpv-player/mpv
+[ ! -d mpv ] && clone_at mpv https://github.com/mpv-player/mpv $v_mpv
 
 cd ..

@@ -17,6 +17,13 @@ v_freetype=2.14.1
 v_mbedtls=3.6.5
 v_libxml2=2.13.5
 
+# Commits, so each build gets exactly these sources
+v_dav1d=54706fc6bc0cdecab7e9593974a4039cc038fca7 # 1.5.4
+v_ffmpeg=7ef5a794c42abcb4a62e1ab22f4ae3ce40aee729
+v_libass=4a05d8127f525943ebf45fdc6497c9e665947f0d # 0.17.5
+v_libplacebo=0d043c7f6f79cd3687c023454bdacbe615e4d96f
+v_mpv=36abaa32d00a7229ee206aae12dc0e97e7962dca
+
 
 ## Dependency tree
 # I would've used a dict but putting arrays in a dict is not a thing
@@ -38,8 +45,5 @@ dep_mpv_android=(mpv)
 
 ## for CI workflow
 
-# pinned ffmpeg revision
-v_ci_ffmpeg=n8.0
-
 # filename used to uniquely identify a build prefix
-ci_tarball="prefix-ndk-${v_ndk}-lua-${v_lua}-unibreak-${v_unibreak}-harfbuzz-${v_harfbuzz}-fribidi-${v_fribidi}-freetype-${v_freetype}-mbedtls-${v_mbedtls}-ffmpeg-${v_ci_ffmpeg}.tgz"
+ci_tarball="prefix-ndk-${v_ndk}-lua-${v_lua}-unibreak-${v_unibreak}-harfbuzz-${v_harfbuzz}-fribidi-${v_fribidi}-freetype-${v_freetype}-mbedtls-${v_mbedtls}-libxml2-${v_libxml2}-dav1d-${v_dav1d:0:12}-ffmpeg-${v_ffmpeg:0:12}-libass-${v_libass:0:12}-libplacebo-${v_libplacebo:0:12}.tgz"
