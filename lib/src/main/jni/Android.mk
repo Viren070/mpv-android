@@ -64,6 +64,14 @@ LOCAL_EXPORT_C_INCLUDES := $(PREFIX)/include
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := libdovi
+LOCAL_SRC_FILES := $(PREFIX)/lib/$(LOCAL_MODULE).so
+# only include if library file exists
+ifneq (,$(wildcard $(LOCAL_SRC_FILES)))
+include $(PREBUILT_SHARED_LIBRARY)
+endif
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := libmpv
 LOCAL_SRC_FILES := $(PREFIX)/lib/libmpv.so
 LOCAL_EXPORT_C_INCLUDES := $(PREFIX)/include

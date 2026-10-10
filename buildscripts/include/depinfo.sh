@@ -23,6 +23,7 @@ v_ffmpeg=7ef5a794c42abcb4a62e1ab22f4ae3ce40aee729
 v_libass=4a05d8127f525943ebf45fdc6497c9e665947f0d # 0.17.5
 v_libplacebo=0d043c7f6f79cd3687c023454bdacbe615e4d96f
 v_mpv=36abaa32d00a7229ee206aae12dc0e97e7962dca
+v_dovi=d1abe0e27ff2c7ab3339614d06db9f8a058af6b2 # libdovi 3.4.0
 
 
 ## Dependency tree
@@ -40,10 +41,11 @@ dep_libass=(freetype2 fribidi harfbuzz unibreak)
 dep_lua=()
 dep_libplacebo=()
 dep_mpv=(ffmpeg libass lua libplacebo)
-dep_mpv_android=(mpv)
+dep_dovi=()
+dep_mpv_android=(mpv dovi)
 
 
 ## for CI workflow
 
 # filename used to uniquely identify a build prefix
-ci_tarball="prefix-ndk-${v_ndk}-lua-${v_lua}-unibreak-${v_unibreak}-harfbuzz-${v_harfbuzz}-fribidi-${v_fribidi}-freetype-${v_freetype}-mbedtls-${v_mbedtls}-libxml2-${v_libxml2}-dav1d-${v_dav1d:0:12}-ffmpeg-${v_ffmpeg:0:12}-libass-${v_libass:0:12}-libplacebo-${v_libplacebo:0:12}.tgz"
+ci_tarball="prefix-ndk-${v_ndk}-lua-${v_lua}-unibreak-${v_unibreak}-harfbuzz-${v_harfbuzz}-fribidi-${v_fribidi}-freetype-${v_freetype}-mbedtls-${v_mbedtls}-libxml2-${v_libxml2}-dav1d-${v_dav1d:0:12}-ffmpeg-${v_ffmpeg:0:12}-libass-${v_libass:0:12}-libplacebo-${v_libplacebo:0:12}-dovi-${v_dovi:0:12}.tgz"

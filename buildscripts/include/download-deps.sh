@@ -74,4 +74,7 @@ fi
 # mpv
 [ ! -d mpv ] && clone_at mpv https://github.com/mpv-player/mpv $v_mpv
 
+# dovi (libdovi, Dolby Vision RPU conversion)
+[ ! -d dovi ] && clone_at dovi https://github.com/quietvoid/dovi_tool $v_dovi
+
 cd ..
